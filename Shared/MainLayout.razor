@@ -1,0 +1,44 @@
+﻿@inherits LayoutComponentBase
+<div class="vh-100 d-flex flex-column container-fluid ml-0 pl-0">
+    <div class="row border-bottom border-light ml-0 bg-dark sticky-top">
+        <div class="col-md-6 align-self-center">
+            <div class="row">
+                <div class="col-md-1 text-center">
+                    <RadzenIcon Icon="menu" @onclick="e => this.Collapsed = !this.Collapsed" Style="vertical-align: middle; color:whitesmoke"/>
+                </div>
+                <div class="col-md-11 float-left align-self-center">
+                    <div class="page-header">
+                        <h2 class="text-light">Nutrition</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 bg-dark">
+            <div class="col-md-8">
+            </div>
+            <div class="col-md-4 float-right">
+                <nav class="navbar justify-content-lg-between align-content-end">
+                    <ProfileMenu />
+                    <RadzenLink Path="https://docs.microsoft.com/aspnet/" Text="About" Target="_blank" Style="color: whitesmoke" />
+                </nav>
+            </div>
+        </div>
+    </div>
+    <div class="row ml-0 flex-grow-1">
+        <div class="col-md-2 bg-dark pl-0 position-relative @(Collapsed ? "collapse": "" ) " id="navBar">
+            <div class="col-md-2 bg-dark pl-0 position-fixed">
+                <NavMenu />
+            </div>
+        </div>
+        <div class="col-md-10 position-relative">
+            @Body
+        </div>
+    </div>
+</div>
+
+
+@code{
+    [Parameter]
+    public bool Collapsed { get; set; } = false; // hide by default
+}
+

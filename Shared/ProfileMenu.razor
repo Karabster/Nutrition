@@ -1,0 +1,34 @@
+﻿@using System.Security.Claims;
+@using Microsoft.AspNetCore.Identity;
+@using Microsoft.AspNetCore.Components.Authorization;
+@inject UserManager<IdentityUser> _UserManager
+@inject RoleManager<IdentityRole> _RoleManager
+
+<AuthorizeView>
+    <Authorized>
+        <RadzenProfileMenu Style="background-color: #343a40; border-left-color: #343a40; float: right">
+            <Template>
+                <RadzenGravatar Email="@CurrentUser.Identity.Name" Style="color: whitesmoke"/>
+            </Template>
+            <ChildContent>
+                <RadzenProfileMenuItem Text="Log Out" Path="Identity/Account/LogOut" Icon="directions_run" Style="color: whitesmoke"/>
+            </ChildContent>
+        </RadzenProfileMenu>
+    </Authorized>
+    <NotAuthorized>
+        <RadzenLink Path="Identity/Account/Register" Text="Register" Style="color: whitesmoke"/>
+        <RadzenLink Path="Identity/Account/Login" Text="Log in" Style="color: whitesmoke"/>
+    </NotAuthorized>
+</AuthorizeView>
+
+
+@code {
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+    ClaimsPrincipal CurrentUser = new ClaimsPrincipal();
+
+    protected override async Task OnInitializedAsync()
+    {
+        CurrentUser = (await authenticationStateTask).User;
+    }
+}
