@@ -12,24 +12,106 @@
 {
     <p>You are an Administrator named: <b>@CurrentUser.Identity.Name</b></p>
 }
-<RadzenGrid @ref="grid" AllowPaging="true" PageSize="3" AllowSorting="true" RowRender="@RowRender" ExpandMode="DataGridExpandMode.Single"
-            Data="@nutrients" TItem="Nutrient">
+<RadzenGrid @ref="grid" AllowPaging="true" EditMode="CurrentUser.IsInRole(ADMINISTRATION_ROLE) ? DataGridEditMode.Single : DataGridEditMode.Multiple" PageSize="3" RowRender="@RowRender" ExpandMode="DataGridExpandMode.Single"
+            Data="@nutrients" TItem="Nutrient" RowUpdate="@OnUpdateRow">
+    <Template Context="nutrient">
+        <RadzenCard Style="margin-bottom:20px">
+            Description:
+            <b>@nutrient?.NutrientDescription</b>
+        </RadzenCard>
+        <RadzenCard Style="margin-bottom:20px">
+            Description:
+            <b>@nutrient?.NutrientDescription</b>
+        </RadzenCard>
+        <RadzenCard Style="margin-bottom:20px">
+            Description:
+            <b>@nutrient?.NutrientDescription</b>
+        </RadzenCard>
+    </Template>
     <Columns>
-        <RadzenGridColumn Width="100px" TItem="Nutrient" Property="NutrientId" Title="Nutrient ID" />
-        <RadzenGridColumn Width="200px" TItem="Nutrient" Property="NutrientName" Title="Name" />
-        <RadzenGridColumn Width="150px" TItem="Nutrient" Property="NutrientDescription" Title="Description"/>
+        <RadzenGridColumn Width="10%" TItem="Nutrient" Property="NutrientId" Title="Nutrient ID" Sortable="true" />
+        <RadzenGridColumn Width="40%" TItem="Nutrient" Property="NutrientName" Title="Name">
+            <EditTemplate Context="nutrient">
+                <RadzenTextBox @bind-Value="nutrient.NutrientName" Style="width:100%; display: block" Name="Nutrient Name" />
+            </EditTemplate>
+        </RadzenGridColumn>
+        <RadzenGridColumn Width="50%" TItem="Nutrient" Property="NutrientDescription" Title="Description">
+            <EditTemplate Context="nutrient">
+                <RadzenTextBox @bind-Value="nutrient.NutrientDescription" Style="width:100%; display: block" Name="Nuitrient Description" />
+            </EditTemplate>
+        </RadzenGridColumn>
+        <RadzenGridColumn TItem="Nutrient" Context="sampleBlazorModelsSampleOrder" Bubble="false" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="100px">
+            <Template Context="nutrient">
+                <RadzenButton Icon="edit" Size="ButtonSize.Small" Click="@(args => EditRow(nutrient))">
+                </RadzenButton>
+            </Template>
+            <EditTemplate Context="nutrient">
+                <RadzenButton Icon="save" Size="ButtonSize.Small" Click="@((args) => SaveRow(nutrient))">
+                </RadzenButton>
+                <RadzenButton Icon="cancel" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Secondary" Click="@((args) => CancelEdit(nutrient))">
+                </RadzenButton>
+            </EditTemplate>
+        </RadzenGridColumn>
+        <RadzenGridColumn TItem="Nutrient" Context="order" Bubble="false" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="70px">
+            <Template Context="nutrient">
+                <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="close" Size="ButtonSize.Small" Click="@(args => DeleteRow(nutrient))">
+                </RadzenButton>
+            </Template>
+            <EditTemplate Context="nutrient">
+                <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="close" Size="ButtonSize.Small" Click="@(args => DeleteRow(nutrient))">
+                </RadzenButton>
+            </EditTemplate>
+        </RadzenGridColumn>
     </Columns>
 </RadzenGrid>
 
+
 @code {
 
+    string ADMINISTRATION_ROLE = "Administrators";
     [CascadingParameter]
     private Task<AuthenticationState> authenticationStateTask { get; set; }
-    string ADMINISTRATION_ROLE = "Administrators";
     ClaimsPrincipal CurrentUser = new ClaimsPrincipal();
     RadzenGrid<Nutrient> grid;
     private IEnumerable<Nutrient> nutrients;
 
+    void CancelEdit(Nutrient nutrient)
+    {
+        grid.CancelEditRow(nutrient);
+    }
+
+    async void DeleteRow(Nutrient nutrient)
+    {
+        if (await _NutritionManager.DeleteNutrientAsync(nutrient))
+        {
+            await grid.Reload();
+        }
+        else
+        {
+            grid.CancelEditRow(nutrient);
+        }
+    }
+
+    void EditRow(Nutrient nutrient)
+    {
+        grid.EditRow(nutrient);
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            grid.ExpandRow(nutrients.FirstOrDefault());
+            StateHasChanged();
+        }
+
+        base.OnAfterRender(firstRender);
+    }
+
+    void OnCreateRow(Nutrient nutrient)
+    {
+        _NutritionManager.CreateNutrientAsync(nutrient);
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -60,19 +142,18 @@
         nutrients = _NutritionManager.GetAllNutrients();
     }
 
-    protected override void OnAfterRender(bool firstRender)
+    async void OnUpdateRow(Nutrient nutrient)
     {
-        if (firstRender)
-        {
-            grid.ExpandRow(nutrients.FirstOrDefault());
-            StateHasChanged();
-        }
-
-        base.OnAfterRender(firstRender);
+        await _NutritionManager.UpdateNutrientAsync(nutrient);
     }
 
     void RowRender(RowRenderEventArgs<Nutrient> args)
     {
-        args.Expandable = false;
+        args.Expandable = args.Data.NutrientDescription != string.Empty;
+    }
+
+    void SaveRow(Nutrient nutrient)
+    {
+        grid.UpdateRow(nutrient);
     }
 }

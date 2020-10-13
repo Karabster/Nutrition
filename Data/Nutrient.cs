@@ -5,9 +5,9 @@ namespace Nutrition.Data
 {
     public partial class Nutrient
     {
-        public int NutrientId { get; set; }
+        public int NutrientId { get; }
         public string NutrientName { get; set; }
         public string NutrientDescription { get; set; }
-        public Guid NutrientGuid { get; set; }
+        public Guid NutrientGuid { get; private set; } = new Guid();
     }
 }
