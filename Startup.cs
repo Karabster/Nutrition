@@ -15,6 +15,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Nutrition.Areas.Identity;
 using Nutrition.Data;
+using Nutrition.Business.TableManagers;
 
 namespace Nutrition
 {
@@ -34,6 +35,9 @@ namespace Nutrition
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(
                     Configuration.GetConnectionString("DefaultConnection")));
+            services.AddDbContext<NutritionContext>(options =>
+                 options.UseSqlServer(
+                    Configuration.GetConnectionString("DefaultConnection")));
             services.AddDefaultIdentity<IdentityUser>()
                     .AddRoles<IdentityRole>() // Enable roles
                     .AddEntityFrameworkStores<ApplicationDbContext>();
@@ -41,6 +45,7 @@ namespace Nutrition
             services.AddServerSideBlazor();
             services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<IdentityUser>>();
             services.AddSingleton<WeatherForecastService>();
+            services.AddScoped<NutrientManager>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

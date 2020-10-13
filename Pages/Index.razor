@@ -2,64 +2,35 @@
 @using System.Security.Claims;
 @using Microsoft.AspNetCore.Identity;
 @using Microsoft.AspNetCore.Components.Authorization;
+@using Data;
+@using Business.TableManagers;
 @inject UserManager<IdentityUser> _UserManager
 @inject RoleManager<IdentityRole> _RoleManager
+@inject NutrientManager _NutritionManager
 
 @if (CurrentUser.IsInRole(ADMINISTRATION_ROLE))
 {
     <p>You are an Administrator named: <b>@CurrentUser.Identity.Name</b></p>
-    <p>You are an Administrator named: <b>@CurrentUser.Identity.Name</b></p>
-    <p>You are an Administrator named: <b>@CurrentUser.Identity.Name</b></p>
-    <p>You are an Administrator named: <b>@CurrentUser.Identity.Name</b></p>
-    <p>You are an Administrator named: <b>@CurrentUser.Identity.Name</b></p>
-    <p>You are an Administrator named: <b>@CurrentUser.Identity.Name</b></p>
-    <p>You are an Administrator named: <b>@CurrentUser.Identity.Name</b></p>
-    <p>You are an Administrator named: <b>@CurrentUser.Identity.Name</b></p>
-    <p>You are an Administrator named: <b>@CurrentUser.Identity.Name</b></p>
-    <p>You are an Administrator named: <b>@CurrentUser.Identity.Name</b></p>
-    <p>You are an Administrator named: <b>@CurrentUser.Identity.Name</b></p>
-    <p>You are an Administrator named: <b>@CurrentUser.Identity.Name</b></p>
-    <p>You are an Administrator named: <b>@CurrentUser.Identity.Name</b></p>
-    <p>You are an Administrator named: <b>@CurrentUser.Identity.Name</b></p>
-    <p>You are an Administrator named: <b>@CurrentUser.Identity.Name</b></p>
-    <p>You are an Administrator named: <b>@CurrentUser.Identity.Name</b></p>
-    <p>You are an Administrator named: <b>@CurrentUser.Identity.Name</b></p>
-    <p>You are an Administrator named: <b>@CurrentUser.Identity.Name</b></p>
-    <p>You are an Administrator named: <b>@CurrentUser.Identity.Name</b></p>
-    <p>You are an Administrator named: <b>@CurrentUser.Identity.Name</b></p>
-    <p>You are an Administrator named: <b>@CurrentUser.Identity.Name</b></p>
-    <p>You are an Administrator named: <b>@CurrentUser.Identity.Name</b></p>
-    <p>You are an Administrator named: <b>@CurrentUser.Identity.Name</b></p>
-    <p>You are an Administrator named: <b>@CurrentUser.Identity.Name</b></p>
-    <p>You are an Administrator named: <b>@CurrentUser.Identity.Name</b></p>
-    <p>You are an Administrator named: <b>@CurrentUser.Identity.Name</b></p>
-    <p>You are an Administrator named: <b>@CurrentUser.Identity.Name</b></p>
-    <p>You are an Administrator named: <b>@CurrentUser.Identity.Name</b></p>
-    <p>You are an Administrator named: <b>@CurrentUser.Identity.Name</b></p>
-    <p>You are an Administrator named: <b>@CurrentUser.Identity.Name</b></p>
-    <p>You are an Administrator named: <b>@CurrentUser.Identity.Name</b></p>
-    <p>You are an Administrator named: <b>@CurrentUser.Identity.Name</b></p>
-    <p>You are an Administrator named: <b>@CurrentUser.Identity.Name</b></p>
-    <p>You are an Administrator named: <b>@CurrentUser.Identity.Name</b></p>
-    <p>You are an Administrator named: <b>@CurrentUser.Identity.Name</b></p>
-    <p>You are an Administrator named: <b>@CurrentUser.Identity.Name</b></p>
-    <p>You are an Administrator named: <b>@CurrentUser.Identity.Name</b></p>
-    <p>You are an Administrator named: <b>@CurrentUser.Identity.Name</b></p>
-    <p>You are an Administrator named: <b>@CurrentUser.Identity.Name</b></p>
-    <p>You are an Administrator named: <b>@CurrentUser.Identity.Name</b></p>
-    <p>You are an Administrator named: <b>@CurrentUser.Identity.Name</b></p>
-    <p>You are an Administrator named: <b>@CurrentUser.Identity.Name</b></p>
-    <p>You are an Administrator named: <b>@CurrentUser.Identity.Name</b></p>
-    <p>You are an Administrator named: <b>@CurrentUser.Identity.Name</b></p>
-    <p>You are an Administrator named: <b>@CurrentUser.Identity.Name</b></p>
 }
-
+<RadzenGrid @ref="grid" AllowPaging="true" PageSize="3" AllowSorting="true" RowRender="@RowRender" ExpandMode="DataGridExpandMode.Single"
+            Data="@nutrients" TItem="Nutrient">
+    <Columns>
+        <RadzenGridColumn Width="100px" TItem="Nutrient" Property="NutrientId" Title="Nutrient ID" />
+        <RadzenGridColumn Width="200px" TItem="Nutrient" Property="NutrientName" Title="Name" />
+        <RadzenGridColumn Width="150px" TItem="Nutrient" Property="NutrientDescription" Title="Description"/>
+    </Columns>
+</RadzenGrid>
 
 @code {
+
     [CascadingParameter]
     private Task<AuthenticationState> authenticationStateTask { get; set; }
-    ClaimsPrincipal CurrentUser = new ClaimsPrincipal();
     string ADMINISTRATION_ROLE = "Administrators";
+    ClaimsPrincipal CurrentUser = new ClaimsPrincipal();
+    RadzenGrid<Nutrient> grid;
+    private IEnumerable<Nutrient> nutrients;
+
+
     protected override async Task OnInitializedAsync()
     {
         // Ensure there is an ADMINISTRATION_ROLE
@@ -85,5 +56,23 @@
         // Get the current user.
         // Note: User may not be logged in.
         CurrentUser = (await authenticationStateTask).User;
+
+        nutrients = _NutritionManager.GetAllNutrients();
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            grid.ExpandRow(nutrients.FirstOrDefault());
+            StateHasChanged();
+        }
+
+        base.OnAfterRender(firstRender);
+    }
+
+    void RowRender(RowRenderEventArgs<Nutrient> args)
+    {
+        args.Expandable = false;
     }
 }
